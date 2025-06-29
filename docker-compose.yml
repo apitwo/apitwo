@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data
+  openresty:
+    image: openresty/openresty:alpine
+    container_name: openresty
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - ./limit.lua:/usr/local/openresty/nginx/lua/limit.lua:ro
+      - ./conf.d:/usr/local/openresty/nginx/conf/conf.d:ro
+      - ./html:/usr/local/openresty/nginx/html:ro
+    depends_on:
+      - redis 
