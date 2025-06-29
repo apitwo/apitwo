@@ -1,10 +1,10 @@
-# apitwo
+# APITWO
 
 [查看中文文档 (README_ZH.md)](README_ZH.md)
 
 ## Project Introduction
 
-**apitwo** is a high-performance, lightweight API rate-limiting gateway built with **OpenResty**, **Lua**, and **Redis**. It supports flexible multi-tier rate limiting (per-minute, per-hour, per-day) and is ideal for microservices, public APIs, and any scenario that demands robust traffic control.
+**APITWO** is a high-performance, lightweight API rate-limiting gateway built with **OpenResty**, **Lua**, and **Redis**. It supports flexible multi-tier rate limiting (per-minute, per-hour, per-day) and is ideal for microservices, public APIs, and any scenario that demands robust traffic control.
 
 ## Features
 
@@ -48,8 +48,8 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/apitwo/apitwo.git
-cd apitwo
+git clone https://github.com/APITWO/APITWO.git
+cd APITWO
 
 # One-click start
 docker compose up -d

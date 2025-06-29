@@ -1,10 +1,10 @@
-# apitwo
+# APITWO
 
 [English README](README.md)
 
 ## 项目简介
 
-**apitwo** 是一个基于 **OpenResty**、**Lua** 与 **Redis** 的轻量级高性能 API 限流网关，支持分钟 / 小时 / 天多级限流，适用于微服务、公共 API、Webhook 等多种需要流量控制的场景。
+**APITWO** 是一个基于 **OpenResty**、**Lua** 与 **Redis** 的轻量级高性能 API 限流网关，支持分钟 / 小时 / 天多级限流，适用于微服务、公共 API、Webhook 等多种需要流量控制的场景。
 
 ## 主要特性
 
@@ -48,8 +48,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/apitwo/apitwo.git
-cd apitwo
+git clone https://github.com/APITWO/APITWO.git
+cd APITWO
 
 # 一键启动
 docker compose up -d
