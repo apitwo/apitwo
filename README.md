@@ -159,6 +159,57 @@ $ docker exec -it redis redis-cli
 
 Pull requests and issues are welcome! Please follow best practices for Lua, Nginx, and Docker.
 
+## Kubernetes Deployment (Helm)
+
+Prefer to run **APITWO** on a Kubernetes cluster?  The repository already contains a fully-templated Helm chart under `charts/apitwo`.  No remote chart repo is needed—everything works from the local path.
+
+### Prerequisites
+
+- A reachable Kubernetes cluster (v1.21+ recommended)
+- [Helm 3](https://helm.sh/) installed locally (`brew install helm` or official install script)
+
+### Quick start
+
+```bash
+# (Optional) Create a dedicated namespace
+kubectl create ns apitwo
+
+# Install from the local chart directory
+helm install apitwo ./charts/apitwo -n apitwo
+```
+
+Helm will create:
+
+| Resource | Purpose |
+|----------|---------|
+| `StatefulSet/redis` + `Service/redis` | Counter storage |
+| `Deployment/openresty` + `Service/openresty` | API entry & rate limiting |
+| `ConfigMap/openresty-conf` | Ships `nginx.conf` / `limit.lua` to the Pod |
+
+### Customising values
+
+Most knobs live in `values.yaml`. Override on the command line, e.g.:
+
+```bash
+# Expose OpenResty with a LoadBalancer Service and disable Redis persistence
+helm upgrade apitwo ./charts/apitwo -n apitwo \
+  --set openresty.service.type=LoadBalancer \
+  --set redis.persistence.enabled=false
+```
+
+### Verify & lint
+
+```bash
+helm lint ./charts/apitwo            # YAML & template checks
+helm template apitwo ./charts/apitwo # Render manifests without installing
+```
+
+### Uninstall
+
+```bash
+helm uninstall apitwo -n apitwo
+```
+
 ## License
 
 This project is licensed under the MIT License. 

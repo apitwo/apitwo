@@ -157,6 +157,57 @@ $ docker exec -it redis redis-cli
 
 欢迎提交 Issue 和 PR！请遵循 Lua、Nginx、Docker 社区最佳实践。
 
+## 使用 Helm 部署到 Kubernetes
+
+仓库已内置完整的 Helm Chart（路径 `charts/apitwo`），无需推送到远程 Chart 仓库，可直接本地安装。
+
+### 前置条件
+
+- 可访问的 Kubernetes 集群（建议 v1.21+）
+- 已安装 [Helm 3](https://helm.sh/)（macOS 可 `brew install helm`）
+
+### 快速开始
+
+```bash
+# （可选）创建独立命名空间
+kubectl create ns apitwo
+
+# 从本地目录安装 Chart
+helm install apitwo ./charts/apitwo -n apitwo
+```
+
+安装完成后会生成：
+
+| 资源 | 作用 |
+|------|------|
+| `StatefulSet/redis` + `Service/redis` | 计数存储 |
+| `Deployment/openresty` + `Service/openresty` | API 网关 & 限流 |
+| `ConfigMap/openresty-conf` | 注入 `nginx.conf` / `limit.lua` |
+
+### 覆盖默认值
+
+所有可配置项集中在 `values.yaml`，例如：
+
+```bash
+# 把 OpenResty 暴露为 LoadBalancer 类型，并关闭 Redis 持久化
+helm upgrade apitwo ./charts/apitwo -n apitwo \
+  --set openresty.service.type=LoadBalancer \
+  --set redis.persistence.enabled=false
+```
+
+### 验证与调试
+
+```bash
+helm lint ./charts/apitwo            # 模板语法检查
+helm template apitwo ./charts/apitwo # 渲染成 YAML 查看
+```
+
+### 卸载
+
+```bash
+helm uninstall apitwo -n apitwo
+```
+
 ## 许可证
 
 本项目基于 MIT License 发布。 

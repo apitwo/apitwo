@@ -1,0 +1,6 @@
+apiVersion: v2
+name: apitwo
+description: "Deployment of Redis and OpenResty (with Lua rate-limiting) for the apitwo project"
+type: application
+version: 0.1.0
+appVersion: "1.0" 
