@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "{{ include \"apitwo.fullname\" . }}-openresty"
+  name: "{{ include "apitwo.fullname" . }}-openresty"
   labels:
     {{- include "apitwo.labels" . | nindent 4 }}
 spec:
@@ -34,4 +34,4 @@ spec:
       volumes:
         - name: openresty-conf
           configMap:
-            name: "{{ include \"apitwo.fullname\" . }}-openresty-conf" 
+            name: "{{ include "apitwo.fullname" . }}-openresty-conf" 

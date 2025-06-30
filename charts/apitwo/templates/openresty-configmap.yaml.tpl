@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: "{{ include \"apitwo.fullname\" . }}-openresty-conf"
+  name: "{{ include "apitwo.fullname" . }}-openresty-conf"
   labels:
     {{- include "apitwo.labels" . | nindent 4 }}
 data:

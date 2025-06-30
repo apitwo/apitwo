@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: "{{ include \"apitwo.fullname\" . }}-openresty"
+  name: "{{ include "apitwo.fullname" . }}-openresty"
   labels:
     {{- include "apitwo.labels" . | nindent 4 }}
 spec:
