@@ -11,6 +11,7 @@ openresty:
   image: "openresty/openresty:alpine"
   port: 80
   replicaCount: 1
+  dnsResolver: "" # 为空时自动探测
   service:
     type: ClusterIP
   ingress:
