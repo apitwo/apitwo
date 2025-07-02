@@ -4,6 +4,10 @@ metadata:
   name: "{{ include "apitwo.fullname" . }}-openresty"
   labels:
     {{- include "apitwo.labels" . | nindent 4 }}
+  # 当 ConfigMap 发生变更时自动滚动更新 Pod
+  # Trigger rolling update when ConfigMap changes
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/openresty-configmap.yaml.tpl") . | sha256sum }}
 spec:
   replicas: {{ .Values.openresty.replicaCount }}
   selector:
@@ -15,6 +19,10 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "apitwo.name" . }}
         app.kubernetes.io/component: openresty
+      # 当 ConfigMap 发生变更时自动滚动更新 Pod
+      # Trigger rolling update when ConfigMap changes
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/openresty-configmap.yaml.tpl") . | sha256sum }}
     spec:
       containers:
         - name: openresty
