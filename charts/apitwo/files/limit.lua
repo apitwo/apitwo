@@ -8,6 +8,9 @@ local limits = {
     minute = 5    -- 每分钟最大请求数 Max requests per minute
 }
 
+local redis_host = os.getenv("REDIS_HOST") or "redis"   -- Redis host (K8S Service)
+local redis_port = tonumber(os.getenv("REDIS_PORT")) or 6379  -- Redis port
+
 -- 获取客户端唯一标识（可根据实际需求调整） Get client unique key (adjust as needed)
 -- ngx.var.remote_addr
 -- ngx.var.http_x_forwarded_for
@@ -35,7 +38,7 @@ local function rate_limit()
 
     local red = redis:new() -- 创建 redis 实例 Create redis instance
     red:set_timeout(1000) -- 设置超时时间 Set timeout
-    local ok, err = red:connect("redis", 6379) -- 连接 Redis Connect Redis
+    local ok, err = red:connect(redis_host, redis_port) -- 连接 Redis Connect Redis
     if not ok then
         ngx.status = 500
         ngx.say(cjson.encode({ code = 500, msg = "Redis connection failed: " .. (err or "") })) -- Redis connection failed

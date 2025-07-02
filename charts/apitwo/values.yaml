@@ -1,9 +1,10 @@
 redis:
   image: "redis:alpine"
   port: 6379
+  host: "redis"
   persistence:
     enabled: true
-    size: 1Gi
+    size: 10Gi
     storageClass: ""
 
 openresty:
