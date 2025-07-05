@@ -41,7 +41,7 @@ spec:
             - name: REDIS_HOST
               value: {{ .Values.redis.host | quote }}
             - name: REDIS_PORT
-              value: {{ printf "%d" .Values.redis.port | quote }}
+              value: {{ .Values.redis.port | quote }}
           resources:
 {{- toYaml .Values.openresty.resources | indent 12 }}
       volumes:

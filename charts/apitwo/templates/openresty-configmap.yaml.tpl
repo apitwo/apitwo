@@ -8,4 +8,4 @@ data:
   nginx.conf: |-
 {{ tpl (.Files.Get "files/nginx.conf") . | indent 4 }}
   limit.lua: |-
-{{ (.Files.Get "files/limit.lua") | indent 4 }} 
+{{ tpl (.Files.Get "files/limit.lua") . | indent 4 }} 

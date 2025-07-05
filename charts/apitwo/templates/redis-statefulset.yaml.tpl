@@ -17,9 +17,15 @@ spec:
         app.kubernetes.io/name: {{ include "apitwo.name" . }}
         app.kubernetes.io/component: redis
     spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
       containers:
         - name: redis
           image: {{ .Values.redis.image }}
+          command: ["redis-server"]
+          args: ["--save", "900", "1", "--save", "300", "10", "--save", "60", "10000"]
           ports:
             - containerPort: {{ .Values.redis.port }}
           volumeMounts:

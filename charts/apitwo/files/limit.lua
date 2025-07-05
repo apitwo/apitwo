@@ -8,8 +8,16 @@ local limits = {
     minute = 5    -- 每分钟最大请求数 Max requests per minute
 }
 
-local redis_host = os.getenv("REDIS_HOST") or "redis"   -- Redis host (K8S Service)
-local redis_port = tonumber(os.getenv("REDIS_PORT")) or 6379  -- Redis port
+-- 使用 nginx 变量获取 Redis 连接信息
+local redis_host = ngx.var.redis_host or "redis"   -- Redis host
+local redis_port = tonumber(ngx.var.redis_port) or 6379  -- Redis port
+
+-- 调试信息：输出 nginx 变量
+ngx.log(ngx.ERR, "=== Redis Debug Info ===")
+ngx.log(ngx.ERR, "ngx.var.redis_host: " .. (ngx.var.redis_host or "nil"))
+ngx.log(ngx.ERR, "ngx.var.redis_port: " .. (ngx.var.redis_port or "nil"))
+ngx.log(ngx.ERR, "Final redis_host: " .. redis_host)
+ngx.log(ngx.ERR, "Final redis_port: " .. redis_port)
 
 -- 获取客户端唯一标识（可根据实际需求调整） Get client unique key (adjust as needed)
 -- ngx.var.remote_addr
