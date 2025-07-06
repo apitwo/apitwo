@@ -1,6 +1,23 @@
 apiVersion: v2
 name: apitwo
-description: "Deployment of Redis and OpenResty (with Lua rate-limiting) for the apitwo project"
+description: "A high-performance API rate-limiting gateway built with OpenResty, Lua, and Redis"
 type: application
 version: 0.1.0
-appVersion: "1.0" 
+appVersion: "1.0"
+keywords:
+  - api
+  - rate-limiting
+  - openresty
+  - redis
+  - lua
+  - gateway
+home: https://github.com/APITWO/APITWO
+sources:
+  - https://github.com/APITWO/APITWO
+maintainers:
+  - name: APITWO Team
+    email: flora@apitwo.com
+annotations:
+  category: Infrastructure
+  licenses: MIT
+# icon: https://raw.githubusercontent.com/apitwo/apitwo/main/logo.png 

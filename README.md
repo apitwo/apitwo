@@ -12,7 +12,9 @@
 - Customizable limit thresholds
 - JWT user-based limiting ready (plug-in by rewriting `get_client_key()`)
 - Hot reload of Lua and Nginx configuration
-- One-click Docker deployment 
+- One-click Docker deployment
+- **Kubernetes Helm Chart support**: Complete K8s deployment solution
+- **Dynamic service discovery**: Auto-detect Redis service IP
 
 ## Architecture Diagram
 
@@ -27,29 +29,44 @@
 ## Directory Structure
 
 ```
-├── docker-compose.yml   # Redis + OpenResty services
-├── nginx.conf           # Main OpenResty config (loads Lua script)
-├── limit.lua            # Core Lua rate-limiting logic
-├── conf.d/              # Extra Nginx configs
-├── html/                # Static assets
-└── redis-data/          # Redis persistence
-``` 
+├── docker/                    # Docker deployment files
+│   ├── docker-compose.yml     # Redis + OpenResty services
+│   ├── nginx.conf             # Main OpenResty config (loads Lua script)
+│   ├── limit.lua              # Core Lua rate-limiting logic
+│   ├── conf.d/                # Extra Nginx configs
+│   ├── html/                  # Static assets
+│   └── redis-data/            # Redis persistence
+├── charts/                    # Kubernetes Helm Chart
+│   └── apitwo/
+│       ├── Chart.yaml         # Chart metadata
+│       ├── values.yaml        # Default configuration values
+│       ├── templates/         # K8s resource templates
+│       └── files/             # Configuration file templates
+├── README.md                  # English documentation
+├── README_ZH.md               # Chinese documentation
+└── LICENSE                    # Open source license
+```
 
 ## Deployment
 
-### Prerequisites
+### Option 1: Docker Compose Deployment
+
+#### Prerequisites
 
 - Docker ≥ 20.10
 - Docker Compose v2
 - Port 80 (or custom port) open on the host
 - Optional: adequate disk if you persist Redis data
 
-### Clone and Start
+#### Clone and Start
 
 ```bash
 # Clone repository
 git clone https://github.com/APITWO/APITWO.git
 cd APITWO
+
+# Enter docker directory
+cd docker
 
 # One-click start
 docker compose up -d
@@ -62,15 +79,15 @@ This boots two containers:
 | `redis`   | 6379 | Counter storage |
 | `openresty` | 80 | API entry & rate limiting |
 
-### Customization
+#### Customization
 
 | Need | File / Location | How to change |
 |------|-----------------|---------------|
-| Change thresholds | `limit.lua` | Edit the `limits` table |
-| Swap backend target | `nginx.conf` | Update `proxy_pass` |
-| Use JWT / API key | `limit.lua` | Rewrite `get_client_key()` |
-| Enable HTTPS | `nginx.conf` | Mount certs & listen on 443 |
-| Inject env vars | `docker-compose.yml` | Add `environment:` block |
+| Change thresholds | `docker/limit.lua` | Edit the `limits` table |
+| Swap backend target | `docker/nginx.conf` | Update `proxy_pass` |
+| Use JWT / API key | `docker/limit.lua` | Rewrite `get_client_key()` |
+| Enable HTTPS | `docker/nginx.conf` | Mount certs & listen on 443 |
+| Inject env vars | `docker/docker-compose.yml` | Add `environment:` block |
 | Logging & metrics | container logs | Pipe to ELK / Loki etc. |
 
 #### Hot Reload
@@ -79,12 +96,54 @@ This boots two containers:
 docker exec openresty nginx -s reload   # reload after editing Lua/Nginx files
 ```
 
-### Production Tips
+### Option 2: Kubernetes Helm Deployment
 
-1. Use Redis replication/cloud service to avoid single point of failure.
-2. Scale OpenResty horizontally; counters live in Redis so workers stay stateless.
-3. Tune `red:set_timeout()` and connection pool settings in Lua.
-4. Use IP-hash or consistent hashing on upstream load balancers if needed. 
+#### Prerequisites
+
+- A reachable Kubernetes cluster (v1.21+ recommended)
+- [Helm 3](https://helm.sh/) installed locally (`brew install helm` or official install script)
+
+#### Quick start
+
+```bash
+# (Optional) Create a dedicated namespace
+kubectl create ns apitwo
+
+# Install from the local chart directory
+helm install apitwo ./charts/apitwo -n apitwo
+```
+
+Helm will create:
+
+| Resource | Purpose |
+|----------|---------|
+| `StatefulSet/redis` + `Service/redis` | Counter storage |
+| `Deployment/openresty` + `Service/openresty` | API entry & rate limiting |
+| `ConfigMap/openresty-conf` | Ships `nginx.conf` / `limit.lua` to the Pod |
+
+#### Customising values
+
+Most knobs live in `charts/apitwo/values.yaml`. Override on the command line, e.g.:
+
+```bash
+# Expose OpenResty with a LoadBalancer Service and disable Redis persistence
+helm upgrade apitwo ./charts/apitwo -n apitwo \
+  --set openresty.service.type=LoadBalancer \
+  --set redis.persistence.enabled=false
+```
+
+#### Verify & lint
+
+```bash
+helm lint ./charts/apitwo            # YAML & template checks
+helm template apitwo ./charts/apitwo # Render manifests without installing
+```
+
+#### Uninstall
+
+```bash
+helm uninstall apitwo -n apitwo
+```
 
 ## Demo
 
@@ -144,71 +203,54 @@ $ docker exec -it redis redis-cli
 | Kong / APISIX         | High        | High (plugin system) | Medium |
 | **This project**      | High        | High (Lua scripting) | Low-Medium |
 
+## Technical Implementation Details
+
+### Redis Connection Optimization
+
+- **Docker Environment**: Use service name `redis` for DNS resolution
+- **Kubernetes Environment**: Dynamically obtain Redis service ClusterIP, avoiding hardcoding
+- **Connection Pool Management**: Use `lua_shared_dict` to manage Redis connections
+- **Error Handling**: Comprehensive connection failure and timeout handling mechanisms
+
+### Rate Limiting Algorithm
+
+- **Fixed Window**: Count requests by day/hour/minute
+- **Atomic Operations**: Use Redis `INCR` + `EXPIRE` to ensure counting accuracy
+- **Auto Expiration**: Avoid memory leaks, automatically clean up expired counters
+
+### Configuration Hot Reload
+
+- **ConfigMap Change Detection**: Helm Chart automatically detects configuration changes
+- **Pod Rolling Updates**: Automatically restart related Pods when configuration changes
+- **Zero-Downtime Deployment**: Support blue-green deployment and rolling updates
+
 ## FAQ
 
 1. **Is the counter accurate?**  
    Redis `INCR` + `EXPIRE` is atomic—yes, the counts are reliable.
+
 2. **Need distributed locks?**  
    No. The `INCR` operation is atomic, no extra locks required.
+
 3. **How to expose remaining quota?**  
    Add `limit - count` to response headers, or offer a dedicated query endpoint.
+
 4. **Does it support sliding window?**  
    Current algorithm is fixed-window; you can refactor the Lua script for sliding window or token bucket.
 
+5. **What if Redis connection fails?**  
+   - Docker environment: Check container networking and DNS resolution
+   - K8s environment: Check service discovery and network policies
+   - Check OpenResty logs for detailed error messages
+
+6. **How to monitor rate limiting effectiveness?**  
+   - Check OpenResty access logs
+   - Monitor counter keys in Redis
+   - Integrate with Prometheus + Grafana for visualization
+
 ## Contributing
 
-Pull requests and issues are welcome! Please follow best practices for Lua, Nginx, and Docker.
-
-## Kubernetes Deployment (Helm)
-
-Prefer to run **APITWO** on a Kubernetes cluster?  The repository already contains a fully-templated Helm chart under `charts/apitwo`.  No remote chart repo is needed—everything works from the local path.
-
-### Prerequisites
-
-- A reachable Kubernetes cluster (v1.21+ recommended)
-- [Helm 3](https://helm.sh/) installed locally (`brew install helm` or official install script)
-
-### Quick start
-
-```bash
-# (Optional) Create a dedicated namespace
-kubectl create ns apitwo
-
-# Install from the local chart directory
-helm install apitwo ./charts/apitwo -n apitwo
-```
-
-Helm will create:
-
-| Resource | Purpose |
-|----------|---------|
-| `StatefulSet/redis` + `Service/redis` | Counter storage |
-| `Deployment/openresty` + `Service/openresty` | API entry & rate limiting |
-| `ConfigMap/openresty-conf` | Ships `nginx.conf` / `limit.lua` to the Pod |
-
-### Customising values
-
-Most knobs live in `values.yaml`. Override on the command line, e.g.:
-
-```bash
-# Expose OpenResty with a LoadBalancer Service and disable Redis persistence
-helm upgrade apitwo ./charts/apitwo -n apitwo \
-  --set openresty.service.type=LoadBalancer \
-  --set redis.persistence.enabled=false
-```
-
-### Verify & lint
-
-```bash
-helm lint ./charts/apitwo            # YAML & template checks
-helm template apitwo ./charts/apitwo # Render manifests without installing
-```
-
-### Uninstall
-
-```bash
-helm uninstall apitwo -n apitwo
-```
+Pull requests and issues are welcome! Please follow best practices for Lua, Nginx, Docker, and Kubernetes.
 
 ## License
 

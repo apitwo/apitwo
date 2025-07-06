@@ -1,0 +1,44 @@
+# Artifact Hub repository configuration file
+# https://github.com/artifacthub/hub/blob/master/docs/repositories.md
+
+# Repository ID
+repositoryID: apitwo/apitwo
+
+# Repository name
+name: APITWO Helm Charts
+
+# Repository description
+description: Helm charts for APITWO - A high-performance API rate-limiting gateway
+
+# Home URL
+homeURL: https://github.com/APITWO/APITWO
+
+# Logo URL (optional)
+# logoURL: https://raw.githubusercontent.com/APITWO/APITWO/main/logo.png
+
+# Repository maintainers
+maintainers:
+  - name: APITWO Team
+    email: flora@apitwo.com
+
+# Repository keywords
+keywords:
+  - api
+  - rate-limiting
+  - openresty
+  - redis
+  - lua
+  - gateway
+
+# Repository category
+category: Infrastructure
+
+# Repository license
+license: MIT
+
+# Repository links
+links:
+  - name: source
+    url: https://github.com/APITWO/APITWO
+  - name: documentation
+    url: https://github.com/APITWO/APITWO/blob/main/README.md 
