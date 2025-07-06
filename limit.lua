@@ -1,5 +1,6 @@
 local redis = require "resty.redis" -- 引入 redis 库 Import redis lib
 local cjson = require "cjson" -- 引入 cjson 库 Import cjson lib
+cjson.encode_escape_forward_slash(false) -- 关闭正斜杠转义 Disable escape for forward slash
 
 -- 配置 Configuration
 local limits = {
@@ -56,7 +57,7 @@ local function rate_limit()
         end
         if count > limit then
             ngx.status = 429
-            ngx.say(cjson.encode({ code = 429, msg = "Request too frequent (" .. k .. ")" }))
+            ngx.say(cjson.encode({ code = 429, msg = "Request too frequent (" .. k .. "), powered by https://github.com/apitwo/apitwo" }))
             return ngx.exit(429)
         end
     end
