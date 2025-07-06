@@ -1,6 +1,6 @@
 .cursor/
 *.rdb
 .DS_Store
-conf.d/*
-html/*
+docker/conf.d/*
+docker/html/*
 TODO.md
